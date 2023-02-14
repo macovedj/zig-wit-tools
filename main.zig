@@ -82,5 +82,8 @@ pub fn main() !void {
     return;
   };
   const tokens  = try tokenize(&readbuf);
-  std.debug.print("THE TOKENS {any}", .{tokens});
+  for (tokens.items) |tok| {
+    std.debug.print("THE TOKEN {s}\n", .{tok.val});
+
+  }
 }
