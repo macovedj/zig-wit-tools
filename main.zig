@@ -5,6 +5,7 @@ const ArrayList = std.ArrayList;
 const TokenType = enum {
   interface,
   literal,
+  lcurl
 };
 
 const Token = struct {
@@ -14,7 +15,8 @@ const Token = struct {
 
 const Case = enum {
   i,
-  literal
+  literal,
+  @"{",
 };
 
 fn tokenize(chars: []const u8) !ArrayList(Token) {
@@ -25,7 +27,7 @@ fn tokenize(chars: []const u8) !ArrayList(Token) {
   var cur: u32 = 0;
   while (cur < length) {
     const case = std.meta.stringToEnum(Case, &[1]u8{chars[cur]}) orelse Case.literal;
-    std.debug.print("stuff", .{});
+    std.debug.print("stuff\n", .{});
     switch(case) {
       .i => {
         if (cur < length - 10) {
@@ -45,19 +47,31 @@ fn tokenize(chars: []const u8) !ArrayList(Token) {
         }
         // std.debug.print("IM IN THE I BRANCH {s}", .{maybeInterface});
       },
+      .@"{" => {
+        std.debug.print("LEFT CURL\n", .{});
+        try tokens.append(Token {
+            .kind = TokenType.lcurl,
+            .val = "{"
+        });
+        cur += 1;
+      },
       .literal => {
         std.debug.print("LITERAL\n", .{});
         const start = cur;
 
-        while (!std.mem.eql(u8, chars[cur..(cur + 1)], " ")) {
-          std.debug.print("CURENT CHAR {any}", .{chars[cur..cur + 1]});
+        while (!std.mem.eql(u8, chars[cur..(cur + 1)], " ") and !std.mem.eql(u8, chars[cur..(cur + 1)], "\n") and !std.mem.eql(u8, chars[cur..(cur + 1)], "\t")) {
+          std.debug.print("CURENT CHAR {s}\n", .{chars[cur..cur + 1]});
           cur += 1;
           if (cur >= length) {
             break;
           }
         }
+        if (start == cur) {
+          cur += 1;
+          continue;
+        }
         const literal = chars[start..cur];
-        std.debug.print("MADE IT OUT OF WHILE", .{});
+        std.debug.print("MADE IT OUT OF WHILE {s}\n", .{literal});
         try tokens.append(Token {
           .kind = TokenType.literal,
           .val = literal
@@ -84,6 +98,5 @@ pub fn main() !void {
   const tokens  = try tokenize(&readbuf);
   for (tokens.items) |tok| {
     std.debug.print("THE TOKEN {s}\n", .{tok.val});
-
   }
 }
