@@ -13,5 +13,8 @@ pub fn main() !void {
   const tokens  = try token.tokenize(&readbuf);
   
   const witAst = try ast.buildAst(tokens.items);
-  std.debug.print("THIS IS THE AST {any}", .{witAst.interfaces});
+  std.debug.print("THIS IS THE AST {any}\n", .{witAst.interfaces});
+  const record = witAst.interfaces[0].types[0];
+  std.debug.print("THIS IS THE RECORD FIELD {s}\n", .{record.entries[0].field});
+  std.debug.print("THIS IS THE RECORD VAL {s}\n", .{record.entries[0].value});
 }

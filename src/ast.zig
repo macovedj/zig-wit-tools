@@ -13,6 +13,12 @@ const Interface = struct {
 
 const Record = struct {
   name: []const u8,
+  entries: []RecordEntry
+};
+
+const RecordEntry = struct {
+  field: []const u8,
+  value: []const u8
 };
 
 pub fn buildAst(tokens: []token.Token) !AST {
@@ -78,8 +84,24 @@ fn buildInterface(tokens: []token.Token, start: u64) !Interface {
 fn buildRecord(tokens: []token.Token, start: u64) !Record {
   var i = start + 1;
   const name = tokens[i].val;
-  std.debug.print("FIRST TOK IN RECORD BUILDING {s}\n", .{tokens[i].val});
+  i += 2;
+  std.debug.print("NEXT TOK IN RECORD BUILDING {s}\n", .{tokens[i].val});
+  var entries = std.ArrayList(RecordEntry).init(gpa.allocator());
+  const entry = buildRecordEntry(tokens, i);
+  try entries.append(entry);
   return Record {
-    .name = name
+    .name = name,
+    .entries = entries.items
+  };
+}
+
+fn buildRecordEntry(tokens: []token.Token, start: u64) RecordEntry {
+  var i = start;
+  const field = tokens[i].val;
+  const value = tokens[i + 2].val;
+  std.debug.print("NEXT TOK IN ENTRY BUILDING {s}\n", .{tokens[i].val});
+  return RecordEntry {
+    .field = field,
+    .value = value
   };
 }
