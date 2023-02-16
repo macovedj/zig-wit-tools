@@ -13,5 +13,5 @@ pub fn main() !void {
   const tokens  = try token.tokenize(&readbuf);
   
   const witAst = try ast.buildAst(tokens.items);
-  std.debug.print("THIS IS THE AST {any}", .{witAst});
+  std.debug.print("THIS IS THE AST {any}", .{witAst.interfaces});
 }
