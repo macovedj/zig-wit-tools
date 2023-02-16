@@ -24,6 +24,7 @@ const RecordEntry = struct {
 pub fn buildAst(tokens: []token.Token) !AST {
   var interfaces = std.ArrayList(Interface).init(gpa.allocator());
   for (tokens) |tok| {
+    std.debug.print("THE TOKEN {any}\n", .{tok.kind});
     std.debug.print("THE TOKEN {s}\n", .{tok.val});
   }
   for (tokens) |tok, i| {
@@ -93,10 +94,14 @@ fn buildRecord(tokens: []token.Token, start: u64) !Record {
   std.debug.print("NEXT TOK IN RECORD BUILDING {s}\n", .{tokens[i].val});
   var entries = std.ArrayList(RecordEntry).init(gpa.allocator());
   while (buildingRecord) {
-
+    const entry = buildRecordEntry(tokens, i);
+    i += 2;
+    try entries.append(entry);
+    if (tokens[i + 2].kind != token.TokenType.literal) {
+      buildingRecord = false;
+    }
+    i += 2;
   }
-  const entry = buildRecordEntry(tokens, i);
-  try entries.append(entry);
   return Record {
     .name = name,
     .entries = entries.items
