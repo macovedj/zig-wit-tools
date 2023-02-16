@@ -27,7 +27,7 @@ const Case = enum {
   @":",
 };
 
-fn tokenize(chars: []const u8) !ArrayList(Token) {
+pub fn tokenize(chars: []const u8) !ArrayList(Token) {
   var tokens = ArrayList(Token).init(gpa.allocator());
   const length = chars.len;
   std.debug.print("THIS IS THE LENGTH {}\n", .{length});
@@ -150,17 +150,17 @@ fn tokenize(chars: []const u8) !ArrayList(Token) {
   return tokens;
 }
 
-pub fn main() !void {
-  var readbuf: [500]u8 = undefined;
-  const flags = std.fs.File.OpenFlags { .mode = std.fs.File.OpenMode.read_write };
-  const file = try std.fs.cwd().openFile("example.wit", flags);
-  _ = file.read(&readbuf) catch |err| {
-    std.debug.print("TEH READ ERROR: {}", .{err});
-    return;
-  };
-  const tokens  = try tokenize(&readbuf);
-  for (tokens.items) |tok| {
-    std.debug.print("THE TOKEN KIND {any}\n", .{tok.kind});
-    std.debug.print("THE TOKEN VAL {s}\n", .{tok.val});
-  }
-}
+// pub fn main() !void {
+//   var readbuf: [500]u8 = undefined;
+//   const flags = std.fs.File.OpenFlags { .mode = std.fs.File.OpenMode.read_write };
+//   const file = try std.fs.cwd().openFile("example.wit", flags);
+//   _ = file.read(&readbuf) catch |err| {
+//     std.debug.print("TEH READ ERROR: {}", .{err});
+//     return;
+//   };
+//   const tokens  = try tokenize(&readbuf);
+//   for (tokens.items) |tok| {
+//     std.debug.print("THE TOKEN KIND {any}\n", .{tok.kind});
+//     std.debug.print("THE TOKEN VAL {s}\n", .{tok.val});
+//   }
+// }
