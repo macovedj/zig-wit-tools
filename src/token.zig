@@ -2,7 +2,7 @@ const std = @import("std");
 var gpa = std.heap.GeneralPurposeAllocator(.{}){};
 const ArrayList = std.ArrayList;
 
-const TokenType = enum {
+pub const TokenType = enum {
   colon,
   interface,
   lcurl,
@@ -12,7 +12,7 @@ const TokenType = enum {
   unsigned32,
 };
 
-const Token = struct {
+pub const Token = struct {
   kind: TokenType,
   val: []const u8
 };
@@ -149,18 +149,3 @@ pub fn tokenize(chars: []const u8) !ArrayList(Token) {
   }
   return tokens;
 }
-
-// pub fn main() !void {
-//   var readbuf: [500]u8 = undefined;
-//   const flags = std.fs.File.OpenFlags { .mode = std.fs.File.OpenMode.read_write };
-//   const file = try std.fs.cwd().openFile("example.wit", flags);
-//   _ = file.read(&readbuf) catch |err| {
-//     std.debug.print("TEH READ ERROR: {}", .{err});
-//     return;
-//   };
-//   const tokens  = try tokenize(&readbuf);
-//   for (tokens.items) |tok| {
-//     std.debug.print("THE TOKEN KIND {any}\n", .{tok.kind});
-//     std.debug.print("THE TOKEN VAL {s}\n", .{tok.val});
-//   }
-// }

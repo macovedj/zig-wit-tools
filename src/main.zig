@@ -1,4 +1,5 @@
 const std = @import("std");
+const ast = @import("ast.zig");
 const token = @import("token.zig");
 
 pub fn main() !void {
@@ -10,8 +11,6 @@ pub fn main() !void {
     return;
   };
   const tokens  = try token.tokenize(&readbuf);
-  for (tokens.items) |tok| {
-    std.debug.print("THE TOKEN KIND {any}\n", .{tok.kind});
-    std.debug.print("THE TOKEN VAL {s}\n", .{tok.val});
-  }
+  
+  try ast.ast(tokens);
 }
