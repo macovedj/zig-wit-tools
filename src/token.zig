@@ -4,6 +4,7 @@ const ArrayList = std.ArrayList;
 
 pub const TokenType = enum {
   colon,
+  comma,
   interface,
   lcurl,
   literal,
@@ -25,6 +26,7 @@ const Case = enum {
   @"{",
   @"}",
   @":",
+  @",",
 };
 
 pub fn tokenize(chars: []const u8) !ArrayList(Token) {
@@ -35,7 +37,7 @@ pub fn tokenize(chars: []const u8) !ArrayList(Token) {
   var cur: u32 = 0;
   while (cur < length) {
     const case = std.meta.stringToEnum(Case, &[1]u8{chars[cur]}) orelse Case.literal;
-    std.debug.print("stuff {}\n", .{chars[cur]});
+    std.debug.print("case {any}\n", .{case});
     switch(case) {
       .i => {
         if (cur < length - 10) {
@@ -65,7 +67,7 @@ pub fn tokenize(chars: []const u8) !ArrayList(Token) {
           !std.mem.eql(u8, chars[cur..(cur + 1)], "\t") and
           !std.mem.eql(u8, chars[cur..(cur + 1)], ":")
           ) {
-          std.debug.print("CURENT CHAR {s}\n", .{chars[cur..cur + 1]});
+          // std.debug.print("CURENT CHAR {s}\n", .{chars[cur..cur + 1]});
           cur += 1;
           if (cur >= length) {
             break;
@@ -113,8 +115,8 @@ pub fn tokenize(chars: []const u8) !ArrayList(Token) {
             try tokens.append(Token {
               .kind = TokenType.unsigned32,
               .val = "u32"
-          });
-            cur += 4;
+            });
+            cur += 3;
           } else {
             cur += 1;
           }
@@ -141,6 +143,14 @@ pub fn tokenize(chars: []const u8) !ArrayList(Token) {
         try tokens.append(Token {
             .kind = TokenType.colon,
             .val = ":"
+        });
+        cur += 1;
+      },
+      .@"," => {
+        std.debug.print("COMMA\n", .{});
+        try tokens.append(Token {
+            .kind = TokenType.comma,
+            .val = ","
         });
         cur += 1;
       },

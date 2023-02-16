@@ -23,6 +23,9 @@ const RecordEntry = struct {
 
 pub fn buildAst(tokens: []token.Token) !AST {
   var interfaces = std.ArrayList(Interface).init(gpa.allocator());
+  for (tokens) |tok| {
+    std.debug.print("THE TOKEN {s}\n", .{tok.val});
+  }
   for (tokens) |tok, i| {
     // std.debug.print("THE TOKEN KIND {any}\n", .{tok.kind});
     // std.debug.print("THE TOKEN VAL {s}\n", .{tok.val});
@@ -34,16 +37,16 @@ pub fn buildAst(tokens: []token.Token) !AST {
         try interfaces.append(interface);
       },
       .colon => {},
+      .comma => {},
       .lcurl => {},
       .literal => {},
       .rcurl => {},
       .record => {},
       .unsigned32 => {},
-      // .colon => {}.
-      // .colon => {}.
-      // .colon => {}.
-      // .colon => {}.
-      // .colon => {}.
+      // .colon => {},
+      // .colon => {},
+      // .colon => {},
+      // .colon => {},
     }
   }
   return AST {
@@ -61,6 +64,7 @@ fn buildInterface(tokens: []token.Token, start: u64) !Interface {
   switch (tokens[i].kind) {
     .interface => {},
     .colon => {},
+    .comma => {},
     .lcurl => {},
     .literal => {},
     .rcurl => {},
@@ -82,11 +86,15 @@ fn buildInterface(tokens: []token.Token, start: u64) !Interface {
 }
 
 fn buildRecord(tokens: []token.Token, start: u64) !Record {
+  var buildingRecord = true;
   var i = start + 1;
   const name = tokens[i].val;
   i += 2;
   std.debug.print("NEXT TOK IN RECORD BUILDING {s}\n", .{tokens[i].val});
   var entries = std.ArrayList(RecordEntry).init(gpa.allocator());
+  while (buildingRecord) {
+
+  }
   const entry = buildRecordEntry(tokens, i);
   try entries.append(entry);
   return Record {
