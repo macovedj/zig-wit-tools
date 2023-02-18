@@ -2,7 +2,7 @@ interface hello {
   record coord {
       x: u32,
       y: u32,
-    }
+  }
 
   get-position: func() -> coord
 }

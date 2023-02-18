@@ -14,10 +14,12 @@ pub fn main() !void {
   
   const witAst = try ast.buildAst(tokens.items);
   // std.debug.print("THIS IS THE AST {any}\n", .{witAst.interfaces});
-  const record = witAst.interfaces[0].types[0];
+  const record = witAst.interfaces[0].defs[0];
   // std.debug.print("THE RECORD {any}", .{record});
-  std.debug.print("THIS IS THE FIRST RECORD FIELD {s}\n", .{record.entries[0].field});
-  std.debug.print("THIS IS THE FIRST RECORD VAL {s}\n", .{record.entries[0].value});
-  std.debug.print("THIS IS THE SECOND RECORD FIELD {s}\n", .{record.entries[1].field});
-  std.debug.print("THIS IS THE SECOND RECORD VAL {s}\n", .{record.entries[1].value});
+  std.debug.print("THIS IS THE FIRST RECORD FIELD {s}\n", .{record.record.entries[0].field});
+  std.debug.print("THIS IS THE FIRST RECORD VAL {s}\n", .{record.record.entries[0].value});
+  std.debug.print("THIS IS THE SECOND RECORD FIELD {s}\n", .{record.record.entries[1].field});
+  std.debug.print("THIS IS THE SECOND RECORD VAL {s}\n", .{record.record.entries[1].value});
+  const func = witAst.interfaces[0].defs[1];
+  std.debug.print("THE FUNC {s}", .{func.func.name});
 }

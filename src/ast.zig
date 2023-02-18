@@ -8,7 +8,7 @@ const AST = struct {
 
 const Interface = struct {
   name: []const u8,
-  types: []Record
+  defs: []WitDef
 };
 
 const Record = struct {
@@ -16,9 +16,18 @@ const Record = struct {
   entries: []RecordEntry
 };
 
+const Func = struct {
+  name: []const u8
+};
+
 const RecordEntry = struct {
   field: []const u8,
   value: []const u8
+};
+
+const WitDef = union {
+  record: Record,
+  func: Func
 };
 
 pub fn buildAst(tokens: []token.Token) !AST {
@@ -56,32 +65,45 @@ pub fn buildAst(tokens: []token.Token) !AST {
 }
 
 fn buildInterface(tokens: []token.Token, start: u64) !Interface {
+  var buildingInterface = true;
   var i = start;
-  var types = std.ArrayList(Record).init(gpa.allocator());
+  var defs = std.ArrayList(WitDef).init(gpa.allocator());
   std.debug.print("BUILDING INTERFACE {any}\n", .{tokens[i].kind});
   const name = tokens[i + 1];
   std.debug.print("INTERFACE NAME {s}\n", .{name.val});
   i += 3;
-  switch (tokens[i].kind) {
-    .interface => {},
-    .colon => {},
-    .comma => {},
-    .lcurl => {},
-    .literal => {},
-    .rcurl => {},
-    .record => {
-      std.debug.print("BUILD A RECORD HERE \n", .{});
-      const record = try buildRecord(tokens, i);
-      try types.append(record);
-      std.debug.print("THE RECORD {any}", .{record});
-    },
-    .unsigned32 => {},
+  while (buildingInterface) {
+    switch (tokens[i].kind) {
+      .interface => {},
+      .colon => {},
+      .comma => {},
+      .lcurl => {},
+      .literal => {
+        std.debug.print("ENCOUTNERED LITERAL IN INTERFACE CONSTRUCTION {s} \n", .{tokens[i].val});
+        const func = WitDef { .func = buildFunc(tokens, i) };
+        try defs.append(func);
+        buildingInterface = false;
+      },
+      .rcurl => {},
+      .record => {
+        std.debug.print("BUILD A RECORD HERE \n", .{});
+        const rec = try buildRecord(tokens, i);
+        const record = WitDef { .record = rec };
+        try defs.append(record);
+        std.debug.print("THE RECORD {any}\n", .{record});
+        const size = rec.entries.len;
+        std.debug.print("SIZE OF THE RECORD {}\n", .{size});
+        i += 4 * (size + 1);
+        std.debug.print("THE NEXT TOKEN {}\n", .{tokens[i].kind});
+      },
+      .unsigned32 => {},
+    }
+    std.debug.print("NEXT TOK {any}\n", .{tokens[i]});
   }
   const interface = Interface {
     .name = name.val,
-    .types = types.items
+    .defs = defs.items
   };
-  std.debug.print("NEXT TOK {any}\n", .{tokens[i]});
   // std.debug.print("TEH INTERFACE {any}\n", .{interface});
   return interface;
 }
@@ -112,9 +134,17 @@ fn buildRecordEntry(tokens: []token.Token, start: u64) RecordEntry {
   var i = start;
   const field = tokens[i].val;
   const value = tokens[i + 2].val;
-  std.debug.print("NEXT TOK IN ENTRY BUILDING {s}\n", .{tokens[i].val});
+  // std.debug.print("NEXT TOK IN ENTRY BUILDING {s}\n", .{tokens[i].val});
   return RecordEntry {
     .field = field,
     .value = value
+  };
+}
+
+fn buildFunc(tokens: []token.Token, start: u64) Func {
+  const i = start;
+  const name = tokens[i].val;
+  return Func {
+    .name = name
   };
 }
