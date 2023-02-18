@@ -4,5 +4,5 @@ interface hello {
       y: u32,
   }
 
-  get-position: func() -> coord
+  get-position: func(foo: string, bar: u8) -> coord
 }

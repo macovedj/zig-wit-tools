@@ -40,17 +40,20 @@ pub fn buildAst(tokens: []token.Token) !AST {
     // std.debug.print("THE TOKEN KIND {any}\n", .{tok.kind});
     // std.debug.print("THE TOKEN VAL {s}\n", .{tok.val});
     switch(tok.kind) {
+      .colon => {},
+      .comma => {},
+      .func => {},
       .interface => {
         const interface = try buildInterface(tokens, i);
         // buildInterface(tokens, i);
         std.debug.print("ADDING AN INTERFACE TO THE AST {any}\n", .{interface});
         try interfaces.append(interface);
       },
-      .colon => {},
-      .comma => {},
       .lcurl => {},
+      .lparen => {},
       .literal => {},
       .rcurl => {},
+      .rparen => {},
       .record => {},
       .unsigned32 => {},
       // .colon => {},
@@ -74,10 +77,12 @@ fn buildInterface(tokens: []token.Token, start: u64) !Interface {
   i += 3;
   while (buildingInterface) {
     switch (tokens[i].kind) {
-      .interface => {},
       .colon => {},
       .comma => {},
+      .func => {},
+      .interface => {},
       .lcurl => {},
+      .lparen => {},
       .literal => {
         std.debug.print("ENCOUTNERED LITERAL IN INTERFACE CONSTRUCTION {s} \n", .{tokens[i].val});
         const func = WitDef { .func = buildFunc(tokens, i) };
@@ -85,6 +90,7 @@ fn buildInterface(tokens: []token.Token, start: u64) !Interface {
         buildingInterface = false;
       },
       .rcurl => {},
+      .rparen => {},
       .record => {
         std.debug.print("BUILD A RECORD HERE \n", .{});
         const rec = try buildRecord(tokens, i);
@@ -142,8 +148,10 @@ fn buildRecordEntry(tokens: []token.Token, start: u64) RecordEntry {
 }
 
 fn buildFunc(tokens: []token.Token, start: u64) Func {
-  const i = start;
+  var i = start;
   const name = tokens[i].val;
+  i += 1;
+  std.debug.print("NEXT FUNC TOKEN {s}\n", .{tokens[i].val});
   return Func {
     .name = name
   };

@@ -5,10 +5,13 @@ const ArrayList = std.ArrayList;
 pub const TokenType = enum {
   colon,
   comma,
+  func,
   interface,
   lcurl,
+  lparen,
   literal,
   rcurl,
+  rparen,
   record,
   unsigned32,
 };
@@ -19,10 +22,13 @@ pub const Token = struct {
 };
 
 const Case = enum {
+  f,
   i,
   literal,
   r,
   u,
+  @"(",
+  @")",
   @"{",
   @"}",
   @":",
@@ -39,6 +45,21 @@ pub fn tokenize(chars: []const u8) !ArrayList(Token) {
     const case = std.meta.stringToEnum(Case, &[1]u8{chars[cur]}) orelse Case.literal;
     std.debug.print("case {any}\n", .{case});
     switch(case) {
+      .f => {
+        if (cur < length - 5) {
+          const maybeFunc = chars[cur..(cur + 4)];
+          std.debug.print("MAYBE FUNC {s}\n", .{maybeFunc});
+          if (std.mem.eql(u8, maybeFunc, "func")) {
+            try tokens.append(Token {
+              .kind = TokenType.func,
+              .val = "func"
+            });
+            cur += 5;
+          } else {
+          cur += 1;
+          }
+        }
+      },
       .i => {
         if (cur < length - 10) {
           const maybeInterface = chars[cur..(cur + 9)];
@@ -48,8 +69,8 @@ pub fn tokenize(chars: []const u8) !ArrayList(Token) {
             try tokens.append(Token {
               .kind = TokenType.interface,
               .val = "interface"
-          });
-            cur += 10;
+            });
+          cur += 10;
             // break;
           } else {
             cur += 1;
@@ -81,21 +102,19 @@ pub fn tokenize(chars: []const u8) !ArrayList(Token) {
           continue;
         }
         const literal = chars[start..cur];
-        std.debug.print("MADE IT OUT OF WHILE {s}\n", .{literal});
         try tokens.append(Token {
           .kind = TokenType.literal,
           .val = literal
         });
-        if (start != cur - 1) {
-          cur += 1;
-        }
+        std.debug.print("THIS IS THE CUR {} {s} \n", .{cur, literal});
+        // if (start != cur - 1) {
+        //   cur += 1;
+        // }
       },
       .r => {
        if (cur < length - 7) {
           const maybeRecord = chars[cur..(cur + 6)];
-          std.debug.print("MAYBE RECORD {s}\n", .{maybeRecord});
           if (std.mem.eql(u8, maybeRecord, "record")) {
-            std.debug.print("ADDED A TOKEN", .{});
             try tokens.append(Token {
               .kind = TokenType.record,
               .val = "record"
@@ -109,9 +128,7 @@ pub fn tokenize(chars: []const u8) !ArrayList(Token) {
       .u => {
         if (cur < length - 4) {
           const maybeU32 = chars[cur..(cur + 3)];
-          std.debug.print("MAYBE unsigned {s}\n", .{maybeU32});
           if (std.mem.eql(u8, maybeU32, "u32")) {
-            std.debug.print("ADDED A TOKEN", .{});
             try tokens.append(Token {
               .kind = TokenType.unsigned32,
               .val = "u32"
@@ -122,8 +139,21 @@ pub fn tokenize(chars: []const u8) !ArrayList(Token) {
           }
         } 
       },
+      .@"(" => {
+        try tokens.append(Token {
+            .kind = TokenType.lparen,
+            .val = "("
+        });
+        cur += 1;
+      },
+      .@")" => {
+        try tokens.append(Token {
+            .kind = TokenType.rparen,
+            .val = ")"
+        });
+        cur += 1;
+      },
       .@"{" => {
-        std.debug.print("LEFT CURL\n", .{});
         try tokens.append(Token {
             .kind = TokenType.lcurl,
             .val = "{"
@@ -131,7 +161,6 @@ pub fn tokenize(chars: []const u8) !ArrayList(Token) {
         cur += 1;
       },
       .@"}" => {
-        std.debug.print("RIGHT CURL\n", .{});
         try tokens.append(Token {
             .kind = TokenType.rcurl,
             .val = "}"
