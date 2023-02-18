@@ -42,7 +42,7 @@ pub fn tokenize(chars: []const u8) !ArrayList(Token) {
 
   var cur: u32 = 0;
   while (cur < length) {
-    const case = std.meta.stringToEnum(Case, &[1]u8{chars[cur]}) orelse Case.literal;
+    var case = std.meta.stringToEnum(Case, &[1]u8{chars[cur]}) orelse Case.literal;
     std.debug.print("case {any}\n", .{case});
     switch(case) {
       .f => {
@@ -56,7 +56,11 @@ pub fn tokenize(chars: []const u8) !ArrayList(Token) {
             });
             cur += 5;
           } else {
-          cur += 1;
+          // cur += 1;
+            const lit = try lexLiteral(chars, cur);
+            try tokens.append(lit);
+            // case = Case.literal;
+            cur += @intCast(u32, lit.val.len);
           }
         }
       },
@@ -187,4 +191,34 @@ pub fn tokenize(chars: []const u8) !ArrayList(Token) {
     // std.debug.print("THIS IS THE CUR {}\n", .{chars[cur]});
   }
   return tokens;
+}
+
+fn lexLiteral(chars: []const u8, i: u64) !Token {
+  const start = i;
+  var cur = i;
+  const length = chars.len;
+  while (
+    !std.mem.eql(u8, chars[cur..(cur + 1)], " ") and
+    !std.mem.eql(u8, chars[cur..(cur + 1)], "\n") and
+    !std.mem.eql(u8, chars[cur..(cur + 1)], "\t") and
+    !std.mem.eql(u8, chars[cur..(cur + 1)], ":")
+    ) {
+    // std.debug.print("CURENT CHAR {s}\n", .{chars[cur..cur + 1]});
+    cur += 1;
+    if (cur >= length) {
+      break;
+    }
+  }
+
+  if (start == cur
+    // or start == cur - 1
+    ) {
+    cur += 1;
+    // continue;
+  }
+  const literal = chars[start..cur];
+  return Token {
+    .kind = TokenType.literal,
+    .val = literal
+  };
 }
