@@ -1,6 +1,7 @@
 const std = @import("std");
 const ast = @import("ast.zig");
 const token = @import("token.zig");
+const tokenizer = @import("tokenizer.zig");
 
 pub fn main() !void {
   var readbuf: [500]u8 = undefined;
