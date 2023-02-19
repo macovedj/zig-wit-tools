@@ -14,7 +14,7 @@ const Interface = struct {
 
 const Record = struct {
   name: []const u8,
-  entries: []RecordEntry
+  // entries: []RecordEntry
 };
 
 const Func = struct {
@@ -31,109 +31,162 @@ const WitDef = union {
   func: Func
 };
 
-pub fn buildAst(tokens: []token.Token) !AST {
+pub fn buildAst(source: [:0]u8, tokens: []parser.Token) !AST {
+  std.debug.print("THE SOURCE: {s}", .{source});
   var interfaces = std.ArrayList(Interface).init(gpa.allocator());
-  for (tokens) |tok| {
-    std.debug.print("THE TOKEN {any}\n", .{tok.kind});
-    std.debug.print("THE TOKEN {s}\n", .{tok.val});
-  }
   for (tokens) |tok, i| {
+    std.debug.print("THE TOKEN {s}\n", .{source[tok.loc.start..tok.loc.end]});
     // std.debug.print("THE TOKEN KIND {any}\n", .{tok.kind});
     // std.debug.print("THE TOKEN VAL {s}\n", .{tok.val});
-    switch(tok.kind) {
-      .colon => {},
-      .comma => {},
-      .func => {},
-      .interface => {
-        const interface = try buildInterface(tokens, i);
-        // buildInterface(tokens, i);
-        std.debug.print("ADDING AN INTERFACE TO THE AST {any}\n", .{interface});
+    switch(tok.tag) {
+      .eof => {},
+      .identifier => {},
+      .invalid => {},
+      .lcurl => {},
+      .rcurl => {},
+      .keyword_interface => {
+        const interface = try buildInterface(source, tokens, i);
+        // // buildInterface(tokens, i);
+        // std.debug.print("ADDING AN INTERFACE TO THE AST {any}\n", .{interface});
         try interfaces.append(interface);
       },
-      .lcurl => {},
-      .lparen => {},
-      .literal => {},
-      .rcurl => {},
-      .rparen => {},
-      .record => {},
-      .unsigned32 => {},
-      // .colon => {},
-      // .colon => {},
-      // .colon => {},
-      // .colon => {},
+      .keyword_record => {},
     }
+    // switch(tok) {
+    //   .colon => {},
+    //   .comma => {},
+    //   .func => {},
+    //   .interface => {
+    //     const interface = try buildInterface(tokens, i);
+    //     // buildInterface(tokens, i);
+    //     std.debug.print("ADDING AN INTERFACE TO THE AST {any}\n", .{interface});
+    //     try interfaces.append(interface);
+    //   },
+    //   .lcurl => {},
+    //   .lparen => {},
+    //   .literal => {},
+    //   .rcurl => {},
+    //   .rparen => {},
+    //   .record => {},
+    //   .unsigned32 => {},
+    //   // .colon => {},
+    //   // .colon => {},
+    //   // .colon => {},
+    //   // .colon => {},
+    // }
   }
   return AST {
     .interfaces = interfaces.items
   };
 }
 
-fn buildInterface(tokens: []token.Token, start: u64) !Interface {
+fn buildInterface(source: [:0]u8, tokens: []parser.Token, start: u64) !Interface {
+  std.debug.print("SOME THINGS {s}\n{}\n", .{source, start});
   var buildingInterface = true;
   var i = start;
   var defs = std.ArrayList(WitDef).init(gpa.allocator());
-  std.debug.print("BUILDING INTERFACE {any}\n", .{tokens[i].kind});
-  const name = tokens[i + 1];
-  std.debug.print("INTERFACE NAME {s}\n", .{name.val});
-  i += 3;
+  var name: []const u8 = undefined;
+
   while (buildingInterface) {
-    switch (tokens[i].kind) {
-      .colon => {},
-      .comma => {},
-      .func => {},
-      .interface => {},
-      .lcurl => {},
-      .lparen => {},
-      .literal => {
-        std.debug.print("ENCOUTNERED LITERAL IN INTERFACE CONSTRUCTION {s} \n", .{tokens[i].val});
-        const func = WitDef { .func = buildFunc(tokens, i) };
-        try defs.append(func);
+    const tok = tokens[i];
+    // const tok = std.meta.stringToEnum(parser.Token.Tag, cur.tag) orelse parser.Token.Tag.identifier;
+    switch (tok.tag) {
+      .eof => {},
+      .invalid => {},
+      .identifier => {},
+      .lcurl => {
+        std.debug.print("THE L CURL", .{});
         buildingInterface = false;
       },
       .rcurl => {},
-      .rparen => {},
-      .record => {
-        std.debug.print("BUILD A RECORD HERE \n", .{});
-        const rec = try buildRecord(tokens, i);
-        const record = WitDef { .record = rec };
-        try defs.append(record);
-        std.debug.print("THE RECORD {any}\n", .{record});
-        const size = rec.entries.len;
-        std.debug.print("SIZE OF THE RECORD {}\n", .{size});
-        i += 4 * (size + 1);
-        std.debug.print("THE NEXT TOKEN {}\n", .{tokens[i].kind});
+      .keyword_interface => {
+        std.debug.print("IN INTERFACE BLOCK\n{}\n", .{tok});
+        std.debug.assert(tokens[i + 1].tag == .identifier);
+        std.debug.assert(tokens[i + 2].tag == .lcurl);
+        name = source[tok.loc.start..tok.loc.end];
+        i += 3;
+        std.debug.print("NEXT TOKEN {any}", .{tokens[i]});
+        std.debug.print("NEXT TOKEN {s}", .{source[tokens[i].loc.start..tokens[i].loc.end]});
+        switch(tokens[i].tag) {
+          .eof => {},
+          .identifier => {},
+          .invalid => {},
+          .lcurl => {},
+          .rcurl => {},
+          .keyword_interface => {},
+          .keyword_record => {
+            std.debug.print("GONNA BUILD A RECORD", .{});
+            const record = try buildRecord(source, tokens, i);
+            try defs.append(WitDef { .record = record });
+            buildingInterface = false;
+          },
+        }
       },
-      .unsigned32 => {},
+      .keyword_record => {
+        std.debug.print("INSIDE KEYWORD RECORD", .{});
+      },
+      // .colon => {},
+      // .comma => {},
+      // .func => {},
+      // .interface => {},
+      // .lcurl => {},
+      // .lparen => {},
+      // .literal => {
+      //   std.debug.print("ENCOUTNERED LITERAL IN INTERFACE CONSTRUCTION {s} \n", .{tokens[i].val});
+      //   const func = WitDef { .func = buildFunc(tokens, i) };
+      //   try defs.append(func);
+      //   buildingInterface = false;
+      // },
+      // .rcurl => {},
+      // .rparen => {},
+      // .record => {
+      //   std.debug.print("BUILD A RECORD HERE \n", .{});
+      //   const rec = try buildRecord(tokens, i);
+      //   const record = WitDef { .record = rec };
+      //   try defs.append(record);
+      //   std.debug.print("THE RECORD {any}\n", .{record});
+      //   const size = rec.entries.len;
+      //   std.debug.print("SIZE OF THE RECORD {}\n", .{size});
+      //   i += 4 * (size + 1);
+      //   std.debug.print("THE NEXT TOKEN {}\n", .{tokens[i].kind});
+      // },
+      // .unsigned32 => {},
     }
-    std.debug.print("NEXT TOK {any}\n", .{tokens[i]});
+    // std.debug.print("NEXT TOK {any}\n", .{tokens[i]});
   }
   const interface = Interface {
-    .name = name.val,
+    .name = name,
     .defs = defs.items
   };
   // std.debug.print("TEH INTERFACE {any}\n", .{interface});
   return interface;
 }
 
-fn buildRecord(tokens: []token.Token, start: u64) !Record {
-  var buildingRecord = true;
-  var i = start + 1;
-  const name = tokens[i].val;
+fn buildRecord(source: [:0]u8, tokens: []parser.Token, start: u64) !Record {
+  var i = start;
+  std.debug.assert(tokens[i].tag == .keyword_record);
+  i += 1;
+  const nameTok = tokens[i];
+  std.debug.assert(tokens[i].tag == .identifier);
+
+  const name = source[nameTok.loc.start..nameTok.loc.end];
+  // var buildingRecord = true;
+  // const name = tokens[i].val;
   i += 2;
-  std.debug.print("NEXT TOK IN RECORD BUILDING {s}\n", .{tokens[i].val});
-  var entries = std.ArrayList(RecordEntry).init(gpa.allocator());
-  while (buildingRecord) {
-    const entry = buildRecordEntry(tokens, i);
-    i += 2;
-    try entries.append(entry);
-    if (tokens[i + 2].kind != token.TokenType.literal) {
-      buildingRecord = false;
-    }
-    i += 2;
-  }
+  // std.debug.print("NEXT TOK IN RECORD BUILDING {s}\n", .{tokens[i].val});
+  // var entries = std.ArrayList(RecordEntry).init(gpa.allocator());
+  // while (buildingRecord) {
+    // const entry = buildRecordEntry(tokens, i);
+    // i += 2;
+    // try entries.append(entry);
+    // if (tokens[i + 2].kind != token.TokenType.literal) {
+    //   buildingRecord = false;
+    // }
+    // i += 2;
+  // }
   return Record {
     .name = name,
-    .entries = entries.items
+  //   .entries = entries.items
   };
 }
 

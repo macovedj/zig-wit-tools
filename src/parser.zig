@@ -11,16 +11,17 @@ pub const Token = struct {
 
   pub const keywords = std.ComptimeStringMap(Tag, .{
     .{ "interface", .keyword_interface},
+    .{ "record", .keyword_record},
   });
 
   pub const Tag = enum {
     eof,
-    invalid,
     identifier,
-    interface,
+    invalid,
     lcurl,
     rcurl,
     keyword_interface,
+    keyword_record,
   };
 
   pub fn getKeyword(bytes: []const u8) ?Tag {
@@ -48,7 +49,6 @@ pub const Tokenizer = struct {
   };
 
   pub fn next(self: *Tokenizer) !Token {
-    std.debug.print("CURRENT INDEX {}", .{self.index});
     if (self.pending_invalid_token) |token| {
         self.pending_invalid_token = null;
         return token;
@@ -76,6 +76,14 @@ pub const Tokenizer = struct {
                 result.loc.end = self.index;
                 return result;
             }
+            break;
+          },
+          ' ', '\n', '\t', '\r' => {
+            result.loc.start = self.index + 1;
+          },
+          '{' => {
+            result.tag = .lcurl;
+            self.index += 1;
             break;
           },
           'a'...'z', 'A'...'Z', '_' => {
