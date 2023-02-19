@@ -14,7 +14,7 @@ const Interface = struct {
 
 const Record = struct {
   name: []const u8,
-  // entries: []RecordEntry
+  entries: []RecordEntry
 };
 
 const Func = struct {
@@ -128,37 +128,8 @@ fn buildInterface(source: [:0]u8, tokens: []parser.Token, start: u64) !Interface
           },
         }
       },
-      .keyword_record => {
-        // std.debug.print("INSIDE KEYWORD RECORD", .{});
-      },
-      // .colon => {},
-      // .comma => {},
-      // .func => {},
-      // .interface => {},
-      // .lcurl => {},
-      // .lparen => {},
-      // .literal => {
-      //   std.debug.print("ENCOUTNERED LITERAL IN INTERFACE CONSTRUCTION {s} \n", .{tokens[i].val});
-      //   const func = WitDef { .func = buildFunc(tokens, i) };
-      //   try defs.append(func);
-      //   buildingInterface = false;
-      // },
-      // .rcurl => {},
-      // .rparen => {},
-      // .record => {
-      //   std.debug.print("BUILD A RECORD HERE \n", .{});
-      //   const rec = try buildRecord(tokens, i);
-      //   const record = WitDef { .record = rec };
-      //   try defs.append(record);
-      //   std.debug.print("THE RECORD {any}\n", .{record});
-      //   const size = rec.entries.len;
-      //   std.debug.print("SIZE OF THE RECORD {}\n", .{size});
-      //   i += 4 * (size + 1);
-      //   std.debug.print("THE NEXT TOKEN {}\n", .{tokens[i].kind});
-      // },
-      // .unsigned32 => {},
+      .keyword_record => {},
     }
-    // std.debug.print("NEXT TOK {any}\n", .{tokens[i]});
   }
   const interface = Interface {
     .name = name,
@@ -180,9 +151,10 @@ fn buildRecord(source: [:0]u8, tokens: []parser.Token, start: u64) !Record {
   const name = source[nameTok.loc.start..nameTok.loc.end];
   var buildingRecord = true;
   i += 2;
-  // var entries = std.ArrayList(RecordEntry).init(gpa.allocator());
+  var entries = std.ArrayList(RecordEntry).init(gpa.allocator());
   while (buildingRecord) {
-    buildRecordEntry(source, tokens, i);
+    const entry = buildRecordEntry(source, tokens, i);
+    try entries.append(entry);
     buildingRecord = false;
     // i += 2;
     // try entries.append(entry);
@@ -193,29 +165,26 @@ fn buildRecord(source: [:0]u8, tokens: []parser.Token, start: u64) !Record {
   }
   return Record {
     .name = name,
-  //   .entries = entries.items
+    .entries = entries.items
   };
 }
 
-fn buildRecordEntry(source: [:0]u8, tokens: []parser.Token, start: u64) void {
+fn buildRecordEntry(source: [:0]u8, tokens: []parser.Token, start: u64) RecordEntry {
   std.debug.print("BUILDING ENTRIES\n", .{});
   var i = start;
   const fieldTok = tokens[i];
-  // std.debug.print("THE FIRST TOKEN {s}", .{source[tokens[i].loc.start..tokens[i].loc.end]});
+  const valTok = tokens[i + 2];
   std.debug.assert(fieldTok.tag == .identifier);
-  std.debug.print("ONE ASSERTION PASSED\n", .{});
   std.debug.assert(tokens[i + 1].tag == .colon);
-  std.debug.assert(tokens[i + 2].tag == .identifier);
+  std.debug.assert(valTok.tag == .identifier);
   std.debug.assert(tokens[i + 3].tag == .comma);
   
   const field = source[fieldTok.loc.start..fieldTok.loc.end];
-  std.debug.print("FIELD {s}", .{field});
-  // const value = tokens[i + 2].val;
-  // std.debug.print("NEXT TOK IN ENTRY BUILDING {s}\n", .{tokens[i].val});
-  // return RecordEntry {
-  //   .field = field,
-  //   .value = value
-  // };
+  const val = source[valTok.loc.start..valTok.loc.end];
+  return RecordEntry {
+    .field = field,
+    .value = val
+  };
 }
 
 fn buildFunc(tokens: []token.Token, start: u64) Func {

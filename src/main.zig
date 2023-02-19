@@ -29,8 +29,8 @@ pub fn main() !void {
   std.debug.print("THE INTERFACE {s}", .{interface.name});
   const def = interface.defs[0];
   std.debug.print("THE DEF {s}", .{def.record.name});
-  // std.debug.print("THIS IS THE FIRST RECORD FIELD {s}\n", .{record.record.entries[0].field});
-  // std.debug.print("THIS IS THE FIRST RECORD VAL {s}\n", .{record.record.entries[0].value});
+  std.debug.print("THIS IS THE FIRST RECORD FIELD {s}\n", .{def.record.entries[0].field});
+  std.debug.print("THIS IS THE FIRST RECORD VAL {s}\n", .{def.record.entries[0].value});
   // std.debug.print("THIS IS THE SECOND RECORD FIELD {s}\n", .{record.record.entries[1].field});
   // std.debug.print("THIS IS THE SECOND RECORD VAL {s}\n", .{record.record.entries[1].value});
   // const func = witAst.interfaces[0].defs[1];
