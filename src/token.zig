@@ -35,7 +35,7 @@ const Case = enum {
   @",",
 };
 
-pub fn tokenize(chars: []const u8) !ArrayList(Token) {
+pub fn tokenize(chars: []u8) !ArrayList(Token) {
   var tokens = ArrayList(Token).init(gpa.allocator());
   const length = chars.len;
   std.debug.print("THIS IS THE LENGTH {}\n", .{length});
