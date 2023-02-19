@@ -16,8 +16,10 @@ pub const Token = struct {
 
   pub const Tag = enum {
     eof,
-    identifier,
     invalid,
+    colon,
+    comma,
+    identifier,
     lcurl,
     rcurl,
     keyword_interface,
@@ -80,6 +82,16 @@ pub const Tokenizer = struct {
           },
           ' ', '\n', '\t', '\r' => {
             result.loc.start = self.index + 1;
+          },
+          ':' => {
+            result.tag = .colon;
+            self.index += 1;
+            break;
+          },
+          ',' => {
+            result.tag = .comma;
+            self.index += 1;
+            break;
           },
           '{' => {
             result.tag = .lcurl;
