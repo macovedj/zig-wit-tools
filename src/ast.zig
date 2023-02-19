@@ -1,5 +1,4 @@
 const std = @import("std");
-const token = @import("token.zig");
 const parser = @import("parser.zig");
 var gpa = std.heap.GeneralPurposeAllocator(.{}){};
 
@@ -154,14 +153,11 @@ fn buildRecord(source: [:0]u8, tokens: []parser.Token, start: u64) !Record {
   var entries = std.ArrayList(RecordEntry).init(gpa.allocator());
   while (buildingRecord) {
     const entry = buildRecordEntry(source, tokens, i);
+    i += 4;
     try entries.append(entry);
-    buildingRecord = false;
-    // i += 2;
-    // try entries.append(entry);
-    // if (tokens[i + 2].kind != token.TokenType.literal) {
-    //   buildingRecord = false;
-    // }
-    // i += 2;
+    if (tokens[i].tag == parser.Token.Tag.rcurl) {
+      buildingRecord = false;
+    }
   }
   return Record {
     .name = name,
@@ -187,7 +183,7 @@ fn buildRecordEntry(source: [:0]u8, tokens: []parser.Token, start: u64) RecordEn
   };
 }
 
-fn buildFunc(tokens: []token.Token, start: u64) Func {
+fn buildFunc(tokens: []parser.Token, start: u64) Func {
   var i = start;
   const name = tokens[i].val;
   i += 1;

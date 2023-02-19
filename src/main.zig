@@ -1,6 +1,5 @@
 const std = @import("std");
 const ast = @import("ast.zig");
-const token = @import("token.zig");
 const parser = @import("parser.zig");
 var gpa = std.heap.GeneralPurposeAllocator(.{}){};
 
@@ -31,8 +30,8 @@ pub fn main() !void {
   std.debug.print("THE DEF {s}", .{def.record.name});
   std.debug.print("THIS IS THE FIRST RECORD FIELD {s}\n", .{def.record.entries[0].field});
   std.debug.print("THIS IS THE FIRST RECORD VAL {s}\n", .{def.record.entries[0].value});
-  // std.debug.print("THIS IS THE SECOND RECORD FIELD {s}\n", .{record.record.entries[1].field});
-  // std.debug.print("THIS IS THE SECOND RECORD VAL {s}\n", .{record.record.entries[1].value});
+  std.debug.print("THIS IS THE SECOND RECORD FIELD {s}\n", .{def.record.entries[1].field});
+  std.debug.print("THIS IS THE SECOND RECORD VAL {s}\n", .{def.record.entries[1].value});
   // const func = witAst.interfaces[0].defs[1];
   // std.debug.print("THE FUNC {s}", .{func.func.name});
 }

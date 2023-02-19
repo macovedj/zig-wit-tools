@@ -98,6 +98,11 @@ pub const Tokenizer = struct {
             self.index += 1;
             break;
           },
+          '}' => {
+            result.tag = .rcurl;
+            self.index += 1;
+            break;
+          },
           'a'...'z', 'A'...'Z', '_' => {
               state = .identifier;
               result.tag = .identifier;
