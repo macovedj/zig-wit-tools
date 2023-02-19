@@ -12,16 +12,21 @@ pub const Token = struct {
   pub const keywords = std.ComptimeStringMap(Tag, .{
     .{ "interface", .keyword_interface},
     .{ "record", .keyword_record},
+    .{ "func", .keyword_func},
   });
 
   pub const Tag = enum {
     eof,
     invalid,
+    arrow,
     colon,
     comma,
     identifier,
     lcurl,
+    lparen,
     rcurl,
+    rparen,
+    keyword_func,
     keyword_interface,
     keyword_record,
   };
@@ -88,8 +93,31 @@ pub const Tokenizer = struct {
             self.index += 1;
             break;
           },
+          '-' => {
+            std.debug.print("DASH", .{});
+            if (self.buffer[self.index + 1] == '>') {
+              std.debug.print("ARROW", .{});
+              result.tag = .arrow;
+              self.index += 2;
+              break;
+            }
+            else {
+              state = .identifier;
+              result.tag = .identifier;
+            }
+          },
           ',' => {
             result.tag = .comma;
+            self.index += 1;
+            break;
+          },
+          '(' => {
+            result.tag = .lparen;
+            self.index += 1;
+            break;
+          },
+          ')' => {
+            result.tag = .rparen;
             self.index += 1;
             break;
           },
@@ -110,7 +138,7 @@ pub const Tokenizer = struct {
           else => {}
         },
         .identifier => switch(c) {
-          'a'...'z', 'A'...'Z', '_', '0'...'9' => {},
+          'a'...'z', 'A'...'Z', '-', '0'...'9' => {},
           else => {
             if (Token.getKeyword(self.buffer[result.loc.start..self.index])) |tag| {
               result.tag = tag;

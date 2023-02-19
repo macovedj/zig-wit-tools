@@ -17,7 +17,14 @@ const Record = struct {
 };
 
 const Func = struct {
-  name: []const u8
+  name: []const u8,
+  args: []Arg,
+  returnType: []const u8
+};
+
+const Arg = struct {
+  name: []const u8,
+  kind: []const u8
 };
 
 const RecordEntry = struct {
@@ -39,12 +46,16 @@ pub fn buildAst(source: [:0]u8, tokens: []parser.Token) !AST {
     // std.debug.print("THE TOKEN VAL {s}\n", .{tok.val});
     switch(tok.tag) {
       .eof => {},
-      .identifier => {},
       .invalid => {},
+      .arrow => {},
       .colon => {},
       .comma => {},
+      .identifier => {},
       .lcurl => {},
+      .lparen => {},
       .rcurl => {},
+      .rparen => {},
+      .keyword_func => {},
       .keyword_interface => {
         const interface = try buildInterface(source, tokens, i);
         // // buildInterface(tokens, i);
@@ -53,28 +64,6 @@ pub fn buildAst(source: [:0]u8, tokens: []parser.Token) !AST {
       },
       .keyword_record => {},
     }
-    // switch(tok) {
-    //   .colon => {},
-    //   .comma => {},
-    //   .func => {},
-    //   .interface => {
-    //     const interface = try buildInterface(tokens, i);
-    //     // buildInterface(tokens, i);
-    //     std.debug.print("ADDING AN INTERFACE TO THE AST {any}\n", .{interface});
-    //     try interfaces.append(interface);
-    //   },
-    //   .lcurl => {},
-    //   .lparen => {},
-    //   .literal => {},
-    //   .rcurl => {},
-    //   .rparen => {},
-    //   .record => {},
-    //   .unsigned32 => {},
-    //   // .colon => {},
-    //   // .colon => {},
-    //   // .colon => {},
-    //   // .colon => {},
-    // }
   }
   return AST {
     .interfaces = interfaces.items
@@ -94,14 +83,43 @@ fn buildInterface(source: [:0]u8, tokens: []parser.Token, start: u64) !Interface
     switch (tok.tag) {
       .eof => {},
       .invalid => {},
+      .arrow => {},
       .colon => {},
       .comma => {},
-      .identifier => {},
+      .identifier => {
+        buildingInterface = false;
+        i += 1;
+        std.debug.assert(tokens[i].tag == .colon);
+        i += 1;
+        std.debug.print("THE NEXT TOK {}", .{tokens[i].tag});
+        switch(tokens[i].tag) {
+          .eof => {},
+          .invalid => {},
+          .arrow => {},
+          .colon => {},
+          .comma => {},
+          .identifier => {},
+          .lcurl => {},
+          .lparen => {},
+          .rcurl => {},
+          .rparen => {},
+          .keyword_func => {
+            const func = try buildFunc(source, tokens, i);
+            std.debug.print("THE FUNC {any}", .{func});
+            try defs.append(WitDef { .func = func });
+          },
+          .keyword_interface => {},
+          .keyword_record => {},
+        }
+      },
       .lcurl => {
         std.debug.print("THE L CURL", .{});
         buildingInterface = false;
       },
+      .lparen => {},
       .rcurl => {},
+      .rparen => {},
+      .keyword_func => {},
       .keyword_interface => {
         std.debug.print("IN INTERFACE BLOCK\n{}\n", .{tok});
         std.debug.assert(tokens[i + 1].tag == .identifier);
@@ -113,17 +131,22 @@ fn buildInterface(source: [:0]u8, tokens: []parser.Token, start: u64) !Interface
         switch(tokens[i].tag) {
           .eof => {},
           .invalid => {},
+          .arrow => {},
           .colon => {},
           .comma => {},
           .identifier => {},
           .lcurl => {},
+          .lparen => {},
           .rcurl => {},
+          .rparen => {},
+          .keyword_func => {},
           .keyword_interface => {},
           .keyword_record => {
-            std.debug.print("GONNA BUILD A RECORD", .{});
             const record = try buildRecord(source, tokens, i);
+            std.debug.print("THE CONSTRUCTED RECORD {any}\n", .{record.entries});
             try defs.append(WitDef { .record = record });
-            buildingInterface = false;
+            const recordSize = record.entries.len;
+            i += 4 * (recordSize + 1);
           },
         }
       },
@@ -142,10 +165,8 @@ fn buildRecord(source: [:0]u8, tokens: []parser.Token, start: u64) !Record {
   var i = start;
   std.debug.assert(tokens[i].tag == .keyword_record);
   i += 1;
-  std.debug.print("FIRST ASSERTION\n", .{});
   const nameTok = tokens[i];
   std.debug.assert(tokens[i].tag == .identifier);
-  std.debug.print("SECOND ASSERTION\n", .{});
 
   const name = source[nameTok.loc.start..nameTok.loc.end];
   var buildingRecord = true;
@@ -157,6 +178,7 @@ fn buildRecord(source: [:0]u8, tokens: []parser.Token, start: u64) !Record {
     try entries.append(entry);
     if (tokens[i].tag == parser.Token.Tag.rcurl) {
       buildingRecord = false;
+      i += 1;
     }
   }
   return Record {
@@ -166,7 +188,6 @@ fn buildRecord(source: [:0]u8, tokens: []parser.Token, start: u64) !Record {
 }
 
 fn buildRecordEntry(source: [:0]u8, tokens: []parser.Token, start: u64) RecordEntry {
-  std.debug.print("BUILDING ENTRIES\n", .{});
   var i = start;
   const fieldTok = tokens[i];
   const valTok = tokens[i + 2];
@@ -183,12 +204,45 @@ fn buildRecordEntry(source: [:0]u8, tokens: []parser.Token, start: u64) RecordEn
   };
 }
 
-fn buildFunc(tokens: []parser.Token, start: u64) Func {
+fn buildFunc(source: [:0]u8, tokens: []parser.Token, start: u64) !Func {
   var i = start;
-  const name = tokens[i].val;
+  const tok = tokens[i - 2];
+  const name = source[tok.loc.start..tok.loc.end];
+  std.debug.print("CUR TOK {}\n", .{tokens[i + 1].tag});
   i += 1;
-  std.debug.print("NEXT FUNC TOKEN {s}\n", .{tokens[i].val});
+  std.debug.assert(tokens[i].tag == .lparen);
+  i += 1;
+  var args = std.ArrayList(Arg).init(gpa.allocator());
+  while (tokens[i - 1].tag != .rparen) {
+    const arg = buildArg(source, tokens, i);
+    try args.append(arg);
+    i += 4;
+  }
+  std.debug.assert(tokens[i].tag == .arrow);
+  const returnTok = tokens[i + 1];
+  std.debug.assert(tokens[i + 1].tag == .identifier);
   return Func {
-    .name = name
+    .name = name,
+    .args = args.items,
+    .returnType = source[returnTok.loc.start..returnTok.loc.end]
+  };
+}
+
+fn buildArg(source: [:0]u8, tokens: []parser.Token, start: u64) Arg {
+  var i = start;
+  const nameTok = tokens[i];
+  std.debug.print("THE NAME TOK {s}", .{source[nameTok.loc.start..nameTok.loc.end]});
+  std.debug.assert(nameTok.tag == .identifier);
+  const name = source[nameTok.loc.start..nameTok.loc.end];
+  std.debug.assert(tokens[i + 1].tag == .colon);
+  i += 2;
+  const kindTok = tokens[i];
+  std.debug.print("THE KIND TOK {s}", .{source[kindTok.loc.start..kindTok.loc.end]});
+  std.debug.assert(kindTok.tag == .identifier);
+  const kind = source[kindTok.loc.start..kindTok.loc.end];
+
+  return Arg {
+    .name = name,
+    .kind = kind
   };
 }

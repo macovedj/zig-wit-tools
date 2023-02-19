@@ -32,6 +32,11 @@ pub fn main() !void {
   std.debug.print("THIS IS THE FIRST RECORD VAL {s}\n", .{def.record.entries[0].value});
   std.debug.print("THIS IS THE SECOND RECORD FIELD {s}\n", .{def.record.entries[1].field});
   std.debug.print("THIS IS THE SECOND RECORD VAL {s}\n", .{def.record.entries[1].value});
-  // const func = witAst.interfaces[0].defs[1];
-  // std.debug.print("THE FUNC {s}", .{func.func.name});
+  const func = witAst.interfaces[0].defs[1];
+  std.debug.print("THE FUNC {s}", .{func.func.name});
+  std.debug.print("THE FUNC {s}", .{func.func.args[0].kind});
+  std.debug.print("THE FUNC {s}", .{func.func.args[0].name});
+  std.debug.print("THE FUNC {s}", .{func.func.args[1].kind});
+  std.debug.print("THE FUNC {s}", .{func.func.args[1].name});
+  std.debug.print("THE FUNC {s}", .{func.func.returnType});
 }
