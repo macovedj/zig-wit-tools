@@ -1,5 +1,6 @@
 const std = @import("std");
 const token = @import("token.zig");
+const parser = @import("parser.zig");
 var gpa = std.heap.GeneralPurposeAllocator(.{}){};
 
 const AST = struct {

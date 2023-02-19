@@ -47,7 +47,7 @@ pub const Tokenizer = struct {
     identifier,
   };
 
-  pub fn next(self: *Tokenizer) Token {
+  pub fn next(self: *Tokenizer) !Token {
     std.debug.print("CURRENT INDEX {}", .{self.index});
     if (self.pending_invalid_token) |token| {
         self.pending_invalid_token = null;
