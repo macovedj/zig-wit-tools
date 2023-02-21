@@ -2,7 +2,7 @@ const std = @import("std");
 const parser = @import("parser.zig");
 var gpa = std.heap.GeneralPurposeAllocator(.{}){};
 
-const AST = struct {
+pub const AST = struct {
   interfaces: []Interface
 };
 
@@ -79,7 +79,6 @@ fn buildInterface(source: [:0]u8, tokens: []parser.Token, start: u64) !Interface
 
   while (buildingInterface) {
     const tok = tokens[i];
-    // const tok = std.meta.stringToEnum(parser.Token.Tag, cur.tag) orelse parser.Token.Tag.identifier;
     switch (tok.tag) {
       .eof => {},
       .invalid => {},
@@ -124,7 +123,8 @@ fn buildInterface(source: [:0]u8, tokens: []parser.Token, start: u64) !Interface
         std.debug.print("IN INTERFACE BLOCK\n{}\n", .{tok});
         std.debug.assert(tokens[i + 1].tag == .identifier);
         std.debug.assert(tokens[i + 2].tag == .lcurl);
-        name = source[tok.loc.start..tok.loc.end];
+        const nameTok = tokens[i + 1];
+        name = source[nameTok.loc.start..nameTok.loc.end];
         i += 3;
         std.debug.print("NEXT TOKEN {any}", .{tokens[i]});
         std.debug.print("NEXT TOKEN {s}", .{source[tokens[i].loc.start..tokens[i].loc.end]});

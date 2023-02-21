@@ -5,4 +5,5 @@ interface hello {
   }
 
   get-position: func(foo: string, bar: u8) -> coord
+  
 }
