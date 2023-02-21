@@ -6,7 +6,7 @@ pub const AST = struct {
   interfaces: []Interface
 };
 
-const Interface = struct {
+pub const Interface = struct {
   name: []const u8,
   defs: []WitDef
 };
@@ -104,7 +104,6 @@ fn buildInterface(source: [:0]u8, tokens: []parser.Token, start: u64) !Interface
           .rparen => {},
           .keyword_func => {
             const func = try buildFunc(source, tokens, i);
-            std.debug.print("THE FUNC {any}", .{func});
             try defs.append(WitDef { .func = func });
           },
           .keyword_interface => {},
@@ -112,7 +111,6 @@ fn buildInterface(source: [:0]u8, tokens: []parser.Token, start: u64) !Interface
         }
       },
       .lcurl => {
-        std.debug.print("THE L CURL", .{});
         buildingInterface = false;
       },
       .lparen => {},
@@ -120,14 +118,11 @@ fn buildInterface(source: [:0]u8, tokens: []parser.Token, start: u64) !Interface
       .rparen => {},
       .keyword_func => {},
       .keyword_interface => {
-        std.debug.print("IN INTERFACE BLOCK\n{}\n", .{tok});
         std.debug.assert(tokens[i + 1].tag == .identifier);
         std.debug.assert(tokens[i + 2].tag == .lcurl);
         const nameTok = tokens[i + 1];
         name = source[nameTok.loc.start..nameTok.loc.end];
         i += 3;
-        std.debug.print("NEXT TOKEN {any}", .{tokens[i]});
-        std.debug.print("NEXT TOKEN {s}", .{source[tokens[i].loc.start..tokens[i].loc.end]});
         switch(tokens[i].tag) {
           .eof => {},
           .invalid => {},
