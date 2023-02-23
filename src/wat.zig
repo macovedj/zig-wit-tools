@@ -30,6 +30,25 @@ fn genInterface(interface: AST.Interface) ![]u8 {
     switch (def) {
       .record => {
         std.debug.print("ITS A RECORD {}\n", .{def.record});
+        const recordName = def.record.name;
+        var recordBuffer = std.ArrayList(u8).init(gpa.allocator());
+        _ = try recordBuffer.writer().write("     (type $");
+        _ = try recordBuffer.writer().write(recordName);
+        _ = try recordBuffer.writer().write(" (record");
+        for (def.record.entries) |entry| {
+          _ = try recordBuffer.writer().write(" (field ");
+          _ = try recordBuffer.writer().write(entry.field);
+          _ = try recordBuffer.writer().write(" ");
+          _ = try recordBuffer.writer().write(entry.value);
+          _ = try recordBuffer.writer().write(")");
+        }
+        _ = try recordBuffer.writer().write("))\n");
+        _ = try recordBuffer.writer().write("     (export \"");
+        _ = try recordBuffer.writer().write(recordName);
+        _ = try recordBuffer.writer().write("\" (type (eq $");
+        _ = try recordBuffer.writer().write(recordName);
+        _ = try recordBuffer.writer().write("))\n");
+        _ = try interfaceWatBuffer.writer().write(recordBuffer.items);
       },
       .func => {
         std.debug.print("ITS A FUNC {}\n", .{def.func});
