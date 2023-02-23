@@ -24,7 +24,44 @@ fn genInterface(interface: AST.Interface) ![]u8 {
   var interfaceWatBuffer = std.ArrayList(u8).init(gpa.allocator());
   _ = try interfaceWatBuffer.writer().write("   (type $");
   _ = try interfaceWatBuffer.writer().write(name);
-  _ = try interfaceWatBuffer.writer().write(" instance\n");
+  _ = try interfaceWatBuffer.writer().write(" (instance\n");
+  const defs = interface.defs;
+  for (defs) |def| {
+    switch (def) {
+      .record => {
+        std.debug.print("ITS A RECORD {}\n", .{def.record});
+      },
+      .func => {
+        std.debug.print("ITS A FUNC {}\n", .{def.func});
+        const funcName = def.func.name;
+        std.debug.print("FUNC NAME {s}", .{funcName});
+        var funcBuffer = std.ArrayList(u8).init(gpa.allocator());
+        _ = try funcBuffer.writer().write("     (export \"");
+        _ = try funcBuffer.writer().write(funcName);
+        _ = try funcBuffer.writer().write("\" (func ");
+        const args = def.func.args;
+        std.debug.print("THE ARGS {any}", .{args});
+        for (args) |arg| {
+          _ = try funcBuffer.writer().write("(param \"");
+          _ = try funcBuffer.writer().write(arg.name);
+          _ = try funcBuffer.writer().write("\" $");
+          _ = try funcBuffer.writer().write(arg.kind);
+          _ = try funcBuffer.writer().write(") ");
+        }
+        _ = try funcBuffer.writer().write("(result ");
+        _ = try funcBuffer.writer().write(def.func.returnType);
+        _ = try funcBuffer.writer().write(")))\n");
+        std.debug.print("THE WHOLE FUNC BUFFER {s}", .{funcBuffer.items});
+        _ = try interfaceWatBuffer.writer().write(funcBuffer.items);
+      }
+    }
+  }
+  _ = try interfaceWatBuffer.writer().write("   ))\n");
+  _ = try interfaceWatBuffer.writer().write("  (export \"");
+  _ = try interfaceWatBuffer.writer().write(name);
+  _ = try interfaceWatBuffer.writer().write("\" (instance (type $");
+  _ = try interfaceWatBuffer.writer().write(name);
+  _ = try interfaceWatBuffer.writer().write(")))\n  ))\n)");
   // const nameExport = "(type " ++ name;
   std.debug.print("CONCATTED {s}", .{interfaceWatBuffer.items});
   // std.debug.print("THE NAME {s}", .{name});

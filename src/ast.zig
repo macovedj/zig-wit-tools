@@ -32,7 +32,7 @@ const RecordEntry = struct {
   value: []const u8
 };
 
-const WitDef = union {
+const WitDef = union(enum) {
   record: Record,
   func: Func
 };
