@@ -1,0 +1,26 @@
+  0x0 | 00 61 73 6d | version 12 (Component)
+      | 0c 00 01 00
+  0x8 | 07 44       | component type section
+  0xa | 01          | 1 count
+  0xb | 41 02 01 42 | [type 0] Component([Type(Instance([Type(Defined(Record([("x", Primitive(U32)), ("y", Primitive(U32))]))), Export { name: "coord", url: "", ty: Type(Eq, 0) }, Type(Func(ComponentFuncType { params: [("foo", Primitive(String)), ("bar", Primitive(U8))], results: Unnamed(Type(0)) })), Export { name: "get-position", url: "", ty: Func(2) }])), Export { name: "hello", url: "", ty: Instance(0) }])
+      | 04 01 72 02
+      | 01 78 79 01
+      | 79 79 04 05
+      | 63 6f 6f 72
+      | 64 00 03 00
+      | 00 01 40 02
+      | 03 66 6f 6f
+      | 73 03 62 61
+      | 72 7d 00 00
+      | 04 0c 67 65
+      | 74 2d 70 6f
+      | 73 69 74 69
+      | 6f 6e 00 01
+      | 02 04 05 68
+      | 65 6c 6c 6f
+      | 00 05 00   
+ 0x4e | 0b 0d       | component export section
+ 0x50 | 01          | 1 count
+ 0x51 | 07 65 78 61 | export ComponentExport { name: "example", url: "", kind: Type, index: 0, ty: None }
+      | 6d 70 6c 65
+      | 00 03 00 00

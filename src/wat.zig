@@ -36,9 +36,9 @@ fn genInterface(interface: AST.Interface) ![]u8 {
         _ = try recordBuffer.writer().write(recordName);
         _ = try recordBuffer.writer().write(" (record");
         for (def.record.entries) |entry| {
-          _ = try recordBuffer.writer().write(" (field ");
+          _ = try recordBuffer.writer().write(" (field \"");
           _ = try recordBuffer.writer().write(entry.field);
-          _ = try recordBuffer.writer().write(" ");
+          _ = try recordBuffer.writer().write("\" ");
           _ = try recordBuffer.writer().write(entry.value);
           _ = try recordBuffer.writer().write(")");
         }
@@ -47,7 +47,7 @@ fn genInterface(interface: AST.Interface) ![]u8 {
         _ = try recordBuffer.writer().write(recordName);
         _ = try recordBuffer.writer().write("\" (type (eq $");
         _ = try recordBuffer.writer().write(recordName);
-        _ = try recordBuffer.writer().write("))\n");
+        _ = try recordBuffer.writer().write(")))\n");
         _ = try interfaceWatBuffer.writer().write(recordBuffer.items);
       },
       .func => {
@@ -63,11 +63,11 @@ fn genInterface(interface: AST.Interface) ![]u8 {
         for (args) |arg| {
           _ = try funcBuffer.writer().write("(param \"");
           _ = try funcBuffer.writer().write(arg.name);
-          _ = try funcBuffer.writer().write("\" $");
+          _ = try funcBuffer.writer().write("\" ");
           _ = try funcBuffer.writer().write(arg.kind);
           _ = try funcBuffer.writer().write(") ");
         }
-        _ = try funcBuffer.writer().write("(result ");
+        _ = try funcBuffer.writer().write("(result $");
         _ = try funcBuffer.writer().write(def.func.returnType);
         _ = try funcBuffer.writer().write(")))\n");
         std.debug.print("THE WHOLE FUNC BUFFER {s}", .{funcBuffer.items});

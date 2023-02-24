@@ -2,6 +2,7 @@ const std = @import("std");
 const ast = @import("ast.zig");
 const parser = @import("parser.zig");
 const wat = @import("wat.zig");
+const compwasm = @import("compwasm.zig");
 var gpa = std.heap.GeneralPurposeAllocator(.{}){};
 
 pub fn main() !void {
@@ -23,4 +24,5 @@ pub fn main() !void {
   
   const witAst = try ast.buildAst(source, newTokens.items);
   try wat.genWat(witAst);
+  try compwasm.genCompWasm(witAst);
 }
