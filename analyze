@@ -5,15 +5,15 @@
   // [type 0] Component([Type(Instance([Type(Defined(Record([("x", Primitive(U32)), ("y", Primitive(U32))]))), Export { name: "coord", url: "", ty: Type(Eq, 0) }, Type(Func(ComponentFuncType { params: [("foo", Primitive(String)), ("bar", Primitive(U8))], results: Unnamed(Type(0)) })), Export { name: "get-position", url: "", ty: Func(2) }])), Export { name: "hello", url: "", ty: Instance(0) }])
   0xb | 
     41 // COMPONENT TYPE
-    02 // INSTANE 
+    02 // INSTANCE ? 
     01 // INSTANCE DECL?
     42 // INSTANCE TYPE
-    04
-    01
+    04 // EXPORT DECL
+    01 // INDEX OR SIZE?
     72 // RECORD DEF VALUE
     02
     01
-    78
+    78 //s64 seems weird
     79 //u32
     01
     79 //u32
@@ -26,7 +26,7 @@
     00
     00
     01
-    40
+    40 //func type
     02
     03
     66 6f 6f //"foo"
