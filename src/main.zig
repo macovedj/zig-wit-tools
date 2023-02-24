@@ -23,6 +23,6 @@ pub fn main() !void {
   }
   
   const witAst = try ast.buildAst(source, newTokens.items);
-  try wat.genWat(witAst);
+  // try wat.genWat(witAst);
   try compwasm.genCompWasm(witAst);
 }
